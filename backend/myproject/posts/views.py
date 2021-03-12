@@ -27,13 +27,32 @@ def post_list(request):
     response.status_code = 201
     return response
 
+@csrf_exempt
 def single_post_detail(request, post_id):
-  response = JsonResponse({ "data": {} })
+  if request.method == "GET":
+    response = JsonResponse({ "data": {} })
 
-  for post in posts["data"]:
-    if post["id"] == post_id:
-      response = JsonResponse({ "data": post })
-      return response
+    for post in posts["data"]:
+      if post["id"] == post_id:
+        response = JsonResponse({ "data": post })
+        return response
+    
+    response.status_code = 404
+    return response
   
-  response.status_code = 404
-  return response
+  if request.method == "PUT":
+    request_data = json.loads(request.body)
+    post = {}
+
+    for post_item in posts["data"]:
+      if post_item["id"] == post_id:
+        post = post_item
+        break
+    
+    post["title"] = request_data["title"]
+    post["content"] = request_data["content"]
+    
+    response = JsonResponse(data={ "message": "updated post successfully." })
+    response.status_code = 200
+    return response
+

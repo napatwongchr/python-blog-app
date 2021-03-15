@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from .models import Post
 
 posts = {
     "data": [
@@ -15,8 +16,15 @@ posts = {
 
 @csrf_exempt
 def post_list(request):
+
   if (request.method == "GET"):
-    response = JsonResponse(data=posts)
+    posts = Post.objects.raw('SELECT * FROM posts_post')
+    data = {
+      "data": {
+        "posts": list(posts)
+      }
+    }
+    response = JsonResponse(data=data)
     response.status_code = 200
     return response
 

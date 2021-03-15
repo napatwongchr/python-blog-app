@@ -55,4 +55,16 @@ def single_post_detail(request, post_id):
     response = JsonResponse(data={ "message": "updated post successfully." })
     response.status_code = 200
     return response
+  
+  if request.method == "DELETE":
+    new_posts = []
+    
+    for post_item in posts["data"]:
+      if post_item["id"] != post_id:
+        new_posts.append(post_item)
+    
+    posts["data"] = new_posts
+    response = JsonResponse(data={ "message": "deleted post successfully."})
+    response.status = 200
+    return response
 

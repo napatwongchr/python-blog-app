@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 import json
 from django.core import serializers
+from django.db import connections
 
 from .models import Post
 
@@ -37,7 +38,8 @@ def post_list(request):
 
   if (request.method == "POST"):
     data = json.loads(request.body)
-    posts["data"].append({ "id": "2", "title": data["title"], "content": data["content"] })
+    with connections['default'].cursor() as cursor:
+      cursor.execute('INSERT INTO posts_post (title, content) VALUES (%s, %s)', [data["title"], data["content"]])
     response = JsonResponse(data={ "message": "created post successfully." })
     response.status_code = 201
     return response

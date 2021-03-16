@@ -47,14 +47,20 @@ def post_list(request):
 @csrf_exempt
 def single_post_detail(request, post_id):
   if request.method == "GET":
-    response = JsonResponse({ "data": {} })
+    post = Post.objects.raw("SELECT * FROM posts_post WHERE id = %s", [post_id])
 
-    for post in posts["data"]:
-      if post["id"] == post_id:
-        response = JsonResponse({ "data": post })
-        return response
+    data = [model_to_dict(instance) for instance in post]
+
+    response_data = {}
+    response_data['data'] = data
+
+    response = HttpResponse(
+      json.dumps(response_data),
+      content_type='application/json'
+    ) 
     
-    response.status_code = 404
+    response.status_code = 200
+    
     return response
   
   if request.method == "PUT":

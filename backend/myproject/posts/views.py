@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
 import json
+from django.core import serializers
+
 from .models import Post
 
 posts = {
@@ -18,13 +21,17 @@ posts = {
 def post_list(request):
 
   if (request.method == "GET"):
-    posts = Post.objects.raw('SELECT * FROM posts_post')
-    data = {
-      "data": {
-        "posts": list(posts)
-      }
-    }
-    response = JsonResponse(data=data)
+    queried_posts = Post.objects.raw('SELECT * FROM posts_post')
+    data = [model_to_dict(instance) for instance in queried_posts]
+
+    response_data = {}
+    response_data['data'] = data
+
+    response = HttpResponse(
+      json.dumps(response_data),
+      content_type='application/json'
+    ) 
+    
     response.status_code = 200
     return response
 

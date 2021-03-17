@@ -100,11 +100,8 @@ def single_post_detail(request, post_id):
   
   if request.method == "DELETE":
     try:
-      with connections['default'].cursor() as cursor:
-        cursor.execute(
-          "DELETE FROM posts_post WHERE id=%s",
-          [post_id]
-        )
+      queried_post = Post.objects.filter(id=post_id)[0]
+      queried_post.delete()
     except DataError:
       response_data = {}
       response_data['message'] = "Invalid request"

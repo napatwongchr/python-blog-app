@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 import json
 from django.core import serializers
+from django.db import connections
 
 from .models import Post
 
@@ -21,8 +22,16 @@ posts = {
 def post_list(request):
 
   if (request.method == "GET"):
-    queried_posts = Post.objects.raw('SELECT * FROM posts_post')
-    data = [model_to_dict(instance) for instance in queried_posts]
+    with connections['default'].cursor() as cursor:
+      cursor.execute("SELECT * FROM posts_post")
+
+      columns = [col[0] for col in cursor.description]
+
+      data = [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+      ]
+   
 
     response_data = {}
     response_data['data'] = data

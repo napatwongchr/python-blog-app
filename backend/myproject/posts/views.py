@@ -25,7 +25,7 @@ posts = {
 def post_list(request):
 
   if (request.method == "GET"):
-    queried_posts = Post.objects.raw('SELECT * FROM posts_post')
+    queried_posts = Post.objects.raw("SELECT * FROM posts_post;")
     data = [model_to_dict(instance) for instance in queried_posts]
 
     response_data = {}
@@ -42,7 +42,7 @@ def post_list(request):
   if (request.method == "POST"):
     data = json.loads(request.body)
     with connections['default'].cursor() as cursor:
-      cursor.execute('INSERT INTO posts_post (title, content) VALUES (%s, %s)', [data["title"], data["content"]])
+      cursor.execute("INSERT INTO posts_post (title, content) VALUES (%s, %s);", [data["title"], data["content"]])
     response = JsonResponse(data={ "message": "created post successfully." })
     response.status_code = 201
     return response
@@ -52,7 +52,7 @@ def single_post_detail(request, post_id):
   if request.method == "GET":
     try:
       with connections['default'].cursor() as cursor:
-        cursor.execute("SELECT * FROM posts_post WHERE id = %s", [post_id])
+        cursor.execute("SELECT * FROM posts_post WHERE id = %s;", [post_id])
 
         columns = [col[0] for col in cursor.description]
         
@@ -88,15 +88,12 @@ def single_post_detail(request, post_id):
   
   if request.method == "PUT":
     request_data = json.loads(request.body)
-    post = {}
-
-    for post_item in posts["data"]:
-      if post_item["id"] == post_id:
-        post = post_item
-        break
     
-    post["title"] = request_data["title"]
-    post["content"] = request_data["content"]
+    with connections['default'].cursor() as cursor:
+      cursor.execute(
+        "UPDATE posts_post SET title=%s, content=%s WHERE id=%s;",
+        [request_data["title"], request_data["content"], post_id]
+      )
     
     response = JsonResponse(data={ "message": "updated post successfully." })
     response.status_code = 200

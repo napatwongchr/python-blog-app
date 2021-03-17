@@ -100,13 +100,11 @@ def single_post_detail(request, post_id):
     return response
   
   if request.method == "DELETE":
-    new_posts = []
-    
-    for post_item in posts["data"]:
-      if post_item["id"] != post_id:
-        new_posts.append(post_item)
-    
-    posts["data"] = new_posts
+    with connections['default'].cursor() as cursor:
+      cursor.execute(
+        "DELETE FROM posts_post WHERE id=%s",
+        [post_id]
+      )
     response = JsonResponse(data={ "message": "deleted post successfully."})
     response.status = 200
     return response

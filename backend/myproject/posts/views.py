@@ -2,11 +2,14 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
-import json
 from django.core import serializers
-from django.db import connections
+from django.core.exceptions import *
+from django.db import connections, DataError
 
 from .models import Post
+
+import json
+
 
 posts = {
     "data": [
@@ -47,9 +50,29 @@ def post_list(request):
 @csrf_exempt
 def single_post_detail(request, post_id):
   if request.method == "GET":
-    post = Post.objects.raw("SELECT * FROM posts_post WHERE id = %s", [post_id])
+    try:
+      with connections['default'].cursor() as cursor:
+        cursor.execute("SELECT * FROM posts_post WHERE id = %s", [post_id])
 
-    data = [model_to_dict(instance) for instance in post]
+        columns = [col[0] for col in cursor.description]
+        
+        data = [
+          dict(zip(columns, row))
+          for row in cursor.fetchall()
+        ]
+
+    except DataError:
+      response_data = {}
+      response_data['message'] = "Invalid request"
+      response_data['data'] = []
+
+      response = HttpResponse(
+        json.dumps(response_data),
+        content_type='application/json'
+      )
+      response.status_code = 400
+      return response
+
 
     response_data = {}
     response_data['data'] = data

@@ -13,16 +13,9 @@ import json
 def post_list(request):
 
   if (request.method == "GET"):
-    with connections['default'].cursor() as cursor:
-      cursor.execute("SELECT * FROM posts_post")
+    queried_posts = Post.objects.all()
 
-      columns = [col[0] for col in cursor.description]
-
-      data = [
-        dict(zip(columns, row))
-        for row in cursor.fetchall()
-      ]
-   
+    data = list(queried_posts.values())
 
     response_data = {}
     response_data['data'] = data
@@ -37,7 +30,7 @@ def post_list(request):
 
   if (request.method == "POST"):
     data = json.loads(request.body)
-
+    
     with connections['default'].cursor() as cursor:
       cursor.execute("INSERT INTO posts_post (title, content) VALUES (%s, %s);", [data["title"], data["content"]])
 

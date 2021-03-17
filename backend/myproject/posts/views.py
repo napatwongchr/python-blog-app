@@ -9,17 +9,6 @@ from .models import Post
 
 import json
 
-
-posts = {
-    "data": [
-        {
-            "id": "1",
-            "title": "Post #1",
-            "content": "This is post #1 content"
-        }
-    ]
-}
-
 @csrf_exempt
 def post_list(request):
 
@@ -48,8 +37,10 @@ def post_list(request):
 
   if (request.method == "POST"):
     data = json.loads(request.body)
+
     with connections['default'].cursor() as cursor:
       cursor.execute("INSERT INTO posts_post (title, content) VALUES (%s, %s);", [data["title"], data["content"]])
+
     response = JsonResponse(data={ "message": "created post successfully." })
     response.status_code = 201
     return response

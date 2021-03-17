@@ -89,22 +89,45 @@ def single_post_detail(request, post_id):
   if request.method == "PUT":
     request_data = json.loads(request.body)
     
-    with connections['default'].cursor() as cursor:
-      cursor.execute(
-        "UPDATE posts_post SET title=%s, content=%s WHERE id=%s;",
-        [request_data["title"], request_data["content"], post_id]
+    try:
+      with connections['default'].cursor() as cursor:
+        cursor.execute(
+          "UPDATE posts_post SET title=%s, content=%s WHERE id=%s;",
+          [request_data["title"], request_data["content"], post_id]
+        )
+    except DataError:
+      response_data = {}
+      response_data['message'] = "Invalid request"
+
+      response = HttpResponse(
+        json.dumps(response_data),
+        content_type='application/json'
       )
+      response.status_code = 400
+      return response
     
     response = JsonResponse(data={ "message": "updated post successfully." })
     response.status_code = 200
     return response
   
   if request.method == "DELETE":
-    with connections['default'].cursor() as cursor:
-      cursor.execute(
-        "DELETE FROM posts_post WHERE id=%s",
-        [post_id]
+    try:
+      with connections['default'].cursor() as cursor:
+        cursor.execute(
+          "DELETE FROM posts_post WHERE id=%s",
+          [post_id]
+        )
+    except DataError:
+      response_data = {}
+      response_data['message'] = "Invalid request"
+
+      response = HttpResponse(
+        json.dumps(response_data),
+        content_type='application/json'
       )
+      response.status_code = 400
+      return response
+
     response = JsonResponse(data={ "message": "deleted post successfully."})
     response.status = 200
     return response

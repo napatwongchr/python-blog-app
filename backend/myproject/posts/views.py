@@ -47,16 +47,10 @@ def post_list(request):
 def single_post_detail(request, post_id):
   if request.method == "GET":
     try:
-      with connections['default'].cursor() as cursor:
-        cursor.execute("SELECT * FROM posts_post WHERE id = %s;", [post_id])
-
-        columns = [col[0] for col in cursor.description]
-        
-        data = [
-          dict(zip(columns, row))
-          for row in cursor.fetchall()
-        ]
-
+      queried_post = Post.objects.filter(id=post_id)
+     
+      data = queried_post.values()[0]
+      print(f"quired_post {data}")
     except DataError:
       response_data = {}
       response_data['message'] = "Invalid request"

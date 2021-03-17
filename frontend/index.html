@@ -23,7 +23,7 @@
 
         const data = await res.json();
 
-        resultBox.innerText = data;
+        resultBox.innerText = JSON.stringify(data);
       }
 
       submitButton.addEventListener("click", handleSubmitClick);

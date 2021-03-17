@@ -31,12 +31,17 @@ def post_list(request):
   if (request.method == "POST"):
     data = json.loads(request.body)
     
-    with connections['default'].cursor() as cursor:
-      cursor.execute("INSERT INTO posts_post (title, content) VALUES (%s, %s);", [data["title"], data["content"]])
+    post = Post(
+      title=data["title"],
+      content=data["content"]
+    )
+
+    post.save()
 
     response = JsonResponse(data={ "message": "created post successfully." })
     response.status_code = 201
     return response
+
 
 @csrf_exempt
 def single_post_detail(request, post_id):

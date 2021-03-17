@@ -48,9 +48,7 @@ def single_post_detail(request, post_id):
   if request.method == "GET":
     try:
       queried_post = Post.objects.filter(id=post_id)
-     
       data = queried_post.values()[0]
-      print(f"quired_post {data}")
     except DataError:
       response_data = {}
       response_data['message'] = "Invalid request"
@@ -80,11 +78,11 @@ def single_post_detail(request, post_id):
     request_data = json.loads(request.body)
     
     try:
-      with connections['default'].cursor() as cursor:
-        cursor.execute(
-          "UPDATE posts_post SET title=%s, content=%s WHERE id=%s;",
-          [request_data["title"], request_data["content"], post_id]
-        )
+      queried_post = Post.objects.filter(id=post_id)[0]
+      queried_post.title = request_data["title"]
+      queried_post.content = request_data["content"]
+      queried_post.save()
+
     except DataError:
       response_data = {}
       response_data['message'] = "Invalid request"

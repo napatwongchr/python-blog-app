@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <label for="search-post">Search post id</label>
+    <input id="search-post" type="text" />
+    <div id="result-box"></div>
+    <button id="submit-button">Submit</button>
+    <script>
+      let submitButton = document.getElementById("submit-button");
+      let searchPost = document.getElementById("search-post");
+      let resultBox = document.getElementById("result-box");
+
+      async function handleSubmitClick() {
+        const res = await fetch(
+          "http://127.0.0.1:8000/posts/" + encodeURIComponent(searchPost.value)
+        );
+
+        const data = await res.json();
+
+        resultBox.innerText = data;
+      }
+
+      submitButton.addEventListener("click", handleSubmitClick);
+    </script>
+  </body>
+</html>

@@ -9,17 +9,6 @@ from .models import Post
 
 import json
 
-
-posts = {
-    "data": [
-        {
-            "id": "1",
-            "title": "Post #1",
-            "content": "This is post #1 content"
-        }
-    ]
-}
-
 @csrf_exempt
 def post_list(request):
 
@@ -59,7 +48,7 @@ def single_post_detail(request, post_id):
   if request.method == "GET":
     try:
       with connections['default'].cursor() as cursor:
-        cursor.execute("SELECT * FROM posts_post WHERE id = %s;", [post_id])
+        cursor.execute(f"SELECT * FROM posts_post WHERE id = {post_id}")
 
         columns = [col[0] for col in cursor.description]
         

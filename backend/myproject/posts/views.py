@@ -13,16 +13,9 @@ import json
 def post_list(request):
 
   if (request.method == "GET"):
-    with connections['default'].cursor() as cursor:
-      cursor.execute("SELECT * FROM posts_post")
+    queried_posts = Post.objects.all()
 
-      columns = [col[0] for col in cursor.description]
-
-      data = [
-        dict(zip(columns, row))
-        for row in cursor.fetchall()
-      ]
-   
+    data = list(queried_posts.values())
 
     response_data = {}
     response_data['data'] = data
@@ -37,28 +30,25 @@ def post_list(request):
 
   if (request.method == "POST"):
     data = json.loads(request.body)
+    
+    post = Post(
+      title=data["title"],
+      content=data["content"]
+    )
 
-    with connections['default'].cursor() as cursor:
-      cursor.execute("INSERT INTO posts_post (title, content) VALUES (%s, %s);", [data["title"], data["content"]])
+    post.save()
 
     response = JsonResponse(data={ "message": "created post successfully." })
     response.status_code = 201
     return response
 
+
 @csrf_exempt
 def single_post_detail(request, post_id):
   if request.method == "GET":
     try:
-      with connections['default'].cursor() as cursor:
-        cursor.execute("SELECT * FROM posts_post WHERE id = %s;", [post_id])
-
-        columns = [col[0] for col in cursor.description]
-        
-        data = [
-          dict(zip(columns, row))
-          for row in cursor.fetchall()
-        ]
-
+      queried_post = Post.objects.filter(id=post_id)
+      data = queried_post.values()[0]
     except DataError:
       response_data = {}
       response_data['message'] = "Invalid request"
@@ -88,11 +78,11 @@ def single_post_detail(request, post_id):
     request_data = json.loads(request.body)
     
     try:
-      with connections['default'].cursor() as cursor:
-        cursor.execute(
-          "UPDATE posts_post SET title=%s, content=%s WHERE id=%s;",
-          [request_data["title"], request_data["content"], post_id]
-        )
+      queried_post = Post.objects.filter(id=post_id)[0]
+      queried_post.title = request_data["title"]
+      queried_post.content = request_data["content"]
+      queried_post.save()
+
     except DataError:
       response_data = {}
       response_data['message'] = "Invalid request"
@@ -110,11 +100,8 @@ def single_post_detail(request, post_id):
   
   if request.method == "DELETE":
     try:
-      with connections['default'].cursor() as cursor:
-        cursor.execute(
-          "DELETE FROM posts_post WHERE id=%s",
-          [post_id]
-        )
+      queried_post = Post.objects.filter(id=post_id)[0]
+      queried_post.delete()
     except DataError:
       response_data = {}
       response_data['message'] = "Invalid request"

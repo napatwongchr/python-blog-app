@@ -37,7 +37,7 @@ def post_list(request):
     return Response({ "message": "created post failed", "errors": serializer.errors }, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'DELETE'])
 @csrf_exempt
 def single_post_detail(request, post_id):
   if request.method == "GET":
@@ -63,20 +63,9 @@ def single_post_detail(request, post_id):
   
   if request.method == "DELETE":
     try:
-      queried_post = Post.objects.filter(id=post_id)[0]
-      queried_post.delete()
-    except DataError:
-      response_data = {}
-      response_data['message'] = "Invalid request"
-
-      response = HttpResponse(
-        json.dumps(response_data),
-        content_type='application/json'
-      )
-      response.status_code = 400
-      return response
-
-    response = JsonResponse(data={ "message": "deleted post successfully."})
-    response.status = 200
-    return response
+      post = Post.objects.filter(id=post_id)[0]
+      post.delete()
+      return Response({ "message": "deleted post successfully." })
+    except IndexError:
+      return Response({ "message": "post not found" }, status=status.HTTP_404_NOT_FOUND)
 

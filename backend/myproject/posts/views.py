@@ -19,60 +19,34 @@ def comment_list(request, post_id):
     serializer = CommentSerializer(comments, many=True)
     return Response({ "data": serializer.data })
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @csrf_exempt
 def post_list(request):
-
   if (request.method == "GET"):
     posts = Post.objects.all()
     serializer = PostSerializer(posts, many=True)
     return Response({ "data": serializer.data })
 
   if (request.method == "POST"):
-    data = json.loads(request.body)
-    
-    post = Post(
-      title=data["title"],
-      content=data["content"]
-    )
+    serializer = PostSerializer(data=request.data)
 
-    post.save()
+    if serializer.is_valid():
+      serializer.save()
+      return Response({ "message": "created post successfully." }, status=status.HTTP_201_CREATED)
 
-    response = JsonResponse(data={ "message": "created post successfully." })
-    response.status_code = 201
-    return response
+    return Response({ "message": "created post failed", "errors": serializer.errors }, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
 @csrf_exempt
 def single_post_detail(request, post_id):
   if request.method == "GET":
     try:
-      queried_post = Post.objects.filter(id=post_id)
-      data = queried_post.values()[0]
-    except DataError:
-      response_data = {}
-      response_data['message'] = "Invalid request"
-      response_data['data'] = []
-
-      response = HttpResponse(
-        json.dumps(response_data),
-        content_type='application/json'
-      )
-      response.status_code = 400
-      return response
-
-
-    response_data = {}
-    response_data['data'] = data
-
-    response = HttpResponse(
-      json.dumps(response_data),
-      content_type='application/json'
-    ) 
-    
-    response.status_code = 200
-    
-    return response
+      post = Post.objects.filter(id=post_id)
+      serializer = PostSerializer(post[0])
+      return Response({ "data": serializer.data })
+    except:
+      return Response({ "data": {} }, status=status.HTTP_404_NOT_FOUND)
   
   if request.method == "PUT":
     request_data = json.loads(request.body)

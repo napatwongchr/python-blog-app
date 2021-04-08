@@ -7,7 +7,7 @@ from django.db import connections, DataError
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import CommentSerializer
+from .serializers import CommentSerializer, PostSerializer
 from .models import Post, Comment
 
 import json
@@ -19,24 +19,14 @@ def comment_list(request, post_id):
     serializer = CommentSerializer(comments, many=True)
     return Response({ "data": serializer.data })
 
+@api_view(['GET'])
 @csrf_exempt
 def post_list(request):
 
   if (request.method == "GET"):
-    queried_posts = Post.objects.all()
-
-    data = list(queried_posts.values())
-
-    response_data = {}
-    response_data['data'] = data
-
-    response = HttpResponse(
-      json.dumps(response_data),
-      content_type='application/json'
-    ) 
-    
-    response.status_code = 200
-    return response
+    posts = Post.objects.all()
+    serializer = PostSerializer(posts, many=True)
+    return Response({ "data": serializer.data })
 
   if (request.method == "POST"):
     data = json.loads(request.body)

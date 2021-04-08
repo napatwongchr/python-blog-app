@@ -40,32 +40,25 @@ def post_list(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 @csrf_exempt
 def single_post_detail(request, post_id):
+  post = Post.objects.filter(id=post_id)
+
+  if not len(post):
+    return Response({ "message": f"post {post_id} not found" }, status=status.HTTP_404_NOT_FOUND)
+    
   if request.method == "GET":
-    try:
-      post = Post.objects.filter(id=post_id)
-      serializer = PostSerializer(post[0])
-      return Response({ "data": serializer.data })
-    except IndexError:
-      return Response({ "message": "post not found" }, status=status.HTTP_404_NOT_FOUND)
+    serializer = PostSerializer(post[0])
+    return Response({ "data": serializer.data })
+    
   
   if request.method == "PUT":
-    try:
-      post = Post.objects.filter(id=post_id)[0]
-      serializer = PostSerializer(post, data=request.data)
-
-      if serializer.is_valid():
-        serializer.save()
-        return Response({ "message": "updated post successfully." })
-      return Response({ "message": "updated post failed", "errors": serializer.errors }, status=status.HTTP_400_BAD_REQUEST)
-
-    except IndexError:
-      return Response({ "message": "post not found" }, status=status.HTTP_404_NOT_FOUND)
+    serializer = PostSerializer(post, data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response({ "message": "updated post successfully." })
+    return Response({ "message": "updated post failed", "errors": serializer.errors }, status=status.HTTP_400_BAD_REQUEST)
   
   if request.method == "DELETE":
-    try:
-      post = Post.objects.filter(id=post_id)[0]
-      post.delete()
-      return Response({ "message": "deleted post successfully." })
-    except IndexError:
-      return Response({ "message": "post not found" }, status=status.HTTP_404_NOT_FOUND)
+    post.delete()
+    return Response({ "message": "deleted post successfully." })
+
 

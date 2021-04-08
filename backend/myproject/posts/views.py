@@ -1,13 +1,25 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.forms.models import model_to_dict
 from django.core import serializers
 from django.db import connections, DataError
 
-from .models import Post
+from .models import Post, Comment
 
 import json
+
+def comment_list(request, post_id): 
+  if (request.method == "GET"):
+    queried_comments = Comment.objects.filter(post_id=post_id)
+    data = list(queried_comments.values())
+    
+    response_data = {}
+    response_data['data'] = data
+
+    response = JsonResponse(response_data) 
+
+    response.status_code = 200
+    return response
 
 @csrf_exempt
 def post_list(request):

@@ -37,7 +37,7 @@ def post_list(request):
     return Response({ "message": "created post failed", "errors": serializer.errors }, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT'])
 @csrf_exempt
 def single_post_detail(request, post_id):
   if request.method == "GET":
@@ -45,32 +45,21 @@ def single_post_detail(request, post_id):
       post = Post.objects.filter(id=post_id)
       serializer = PostSerializer(post[0])
       return Response({ "data": serializer.data })
-    except:
-      return Response({ "data": {} }, status=status.HTTP_404_NOT_FOUND)
+    except IndexError:
+      return Response({ "message": "post not found" }, status=status.HTTP_404_NOT_FOUND)
   
   if request.method == "PUT":
-    request_data = json.loads(request.body)
-    
     try:
-      queried_post = Post.objects.filter(id=post_id)[0]
-      queried_post.title = request_data["title"]
-      queried_post.content = request_data["content"]
-      queried_post.save()
+      post = Post.objects.filter(id=post_id)[0]
+      serializer = PostSerializer(post, data=request.data)
 
-    except DataError:
-      response_data = {}
-      response_data['message'] = "Invalid request"
+      if serializer.is_valid():
+        serializer.save()
+        return Response({ "message": "updated post successfully." })
+      return Response({ "message": "updated post failed", "errors": serializer.errors }, status=status.HTTP_400_BAD_REQUEST)
 
-      response = HttpResponse(
-        json.dumps(response_data),
-        content_type='application/json'
-      )
-      response.status_code = 400
-      return response
-    
-    response = JsonResponse(data={ "message": "updated post successfully." })
-    response.status_code = 200
-    return response
+    except IndexError:
+      return Response({ "message": "post not found" }, status=status.HTTP_404_NOT_FOUND)
   
   if request.method == "DELETE":
     try:

@@ -4,8 +4,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.db import connections, DataError
 
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
 from .serializers import CommentSerializer, PostSerializer
 from .models import Post, Comment
@@ -13,6 +14,7 @@ from .models import Post, Comment
 import json
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def comment_list(request, post_id): 
   if request.method == "GET":
     comments = Comment.objects.filter(post_id=post_id)
